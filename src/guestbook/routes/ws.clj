@@ -1,12 +1,12 @@
 (ns guestbook.routes.ws
-  (:require [compojure.core :refer [GET defroutes]]
+  (:require [compojure.core :refer [GET POST defroutes]]
             [bouncer.core :as b]
             [bouncer.validators :as v]
             [guestbook.db.core :as db]
             [mount.core :refer [defstate]]
             [taoensso.sente :as sente]
-            [taoensso.sente.server-adapters.immutant]
-              :refer [sente-web-server-adapter]))
+            [taoensso.sente.server-adapters.immutant
+             :refer [sente-web-server-adapter]]))
 
 
 (let [connection (sente/make-channel-socket!
@@ -14,7 +14,7 @@
                    {:user-id-fn
                     (fn [ring-req] (get-in ring-req [:params :client-id]))})]
   (def ring-ajax-post (:ajax-post-fn connection))
-  (def ring-gajax-get-or-ws-handshake) (:ajax-get-or-ws-handshake-fn connection)
+  (def ring-ajax-get-or-ws-handshake (:ajax-get-or-ws-handshake-fn connection))
   (def ch-chsk (:ch-recv connection))
   (def chsk-send! (:send-fn connection))
   (def connected-uids (:connected-uids connection)))

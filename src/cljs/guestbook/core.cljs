@@ -3,9 +3,6 @@
             [ajax.core :refer [GET]]
             [guestbook.ws :as ws]))
 
-;(-> (.getElementById js/document "content")
-;   (.-innerHTML)
-;   (set! "Hello World!"))
 
 (defn message-list [messages]
   [:ul.content
@@ -33,26 +30,24 @@
     [errors-component errors :name]
     [:p "Name:"
      [:input.form-control
-      {:type :text
-       ;:name :name
+      {:type      :text
        :on-change #(swap! fields assoc :name (-> % .-target .-value))
-       :value (:name @fields)}]]
+       :value     (:name @fields)}]]
     [errors-component errors :message]
     [:p "Message:"
      [:textarea.form-control
-      {:rows 4
-       :cols 50
-       ;:name :message
-       :value (:message @fields)
+      {:rows      4
+       :cols      50
+       :value     (:message @fields)
        :on-change #(swap! fields assoc :message (-> % .-target .-value))}]]
     [:input.btn.btn-primary
-     {:type :submit
-      :on-click #(ws/send-message! @fields)
-      :value "comment"}]]])
+     {:type     :submit
+      :on-click #(ws/send-message! [:guestbook/add-message @fields] 8000)
+      :value    "comment"}]]])
 
 
 (defn response-handler [messages fields errors]
-  (fn [message]
+  (fn [{[_ message] :?data}]
     (if-let [response-errors (:errors message)]
       (reset! errors response-errors)
       (do
@@ -66,8 +61,7 @@
   (let [messages (atom nil)
         errors   (atom nil)
         fields   (atom nil)]
-    (ws/connect! (str "ws://" (.-host js/location) "/ws")
-                 (response-handler messages fields errors))
+    (ws/start-router! (response-handler messages fields errors))
     (get-messages messages)
     (fn []
       [:div
